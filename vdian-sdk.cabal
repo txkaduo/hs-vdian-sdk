@@ -28,6 +28,7 @@ library
   exposed-modules:     VDian.Types
                        VDian.Method
                        VDian.Order
+                       VDian.Cache
                        VDian
 
   build-depends:       base >= 4.7 && < 5
@@ -75,6 +76,7 @@ library
                       RecordWildCards
                       PartialTypeSignatures
                       ConstraintKinds
+                      ExistentialQuantification
 
 
 executable         vdian-manage
