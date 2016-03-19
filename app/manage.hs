@@ -11,8 +11,7 @@ import           System.Log.FastLogger (LoggerSet, newStderrLoggerSet,
                                         pushLogStr)
 
 
-import VDian.Method
-import VDian.Order
+import VDian
 
 data ManageCmd = CmdListOrders
                 deriving (Show, Eq, Ord)
