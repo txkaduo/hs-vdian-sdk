@@ -5,6 +5,7 @@ import           Control.Monad.Logger
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Aeson
 import qualified Data.Aeson.Types      as A
+import           Data.Default          (Default(..))
 import qualified Data.Scientific       as SC
 import qualified Data.Text             as T
 import           Data.Time             ( NominalDiffTime, hoursToTimeZone
@@ -18,6 +19,14 @@ import           Text.Shakespeare.I18N (ToMessage (..))
 #define INT_FROM_JSON_INST(T) instance FromJSON T where { parseJSON = fmap T . parseStrInt }
 
 #define INT_TO_JSON_INST(T) instance ToJSON T where { toJSON (T x) = toJSON x }
+
+
+data VDianApiConfig = VDianApiConfig
+  { vdianApiUrlBase :: String
+  }
+
+instance Default VDianApiConfig where
+  def = VDianApiConfig "https://api.vdian.com"
 
 
 -- | 接口格式

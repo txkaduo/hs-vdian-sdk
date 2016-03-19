@@ -13,19 +13,8 @@ import           Network.Wreq
 import           VDian.Types
 
 
-vdianApiUrlBase :: String
-vdianApiUrlBase =
-#if defined(VDIAN_API_URL_BASE)
-#define XSTRING(v) STRING(v)
-#define STRING(v) #v
--- XSTRING(VDIAN_API_URL_BASE)
-  "http://127.0.0.1:8066"
-#else
-#error "https://api.vdian.com"
-#endif
-
-defaultVDianApiUrl :: String
-defaultVDianApiUrl = vdianApiUrlBase <> "/api"
+defaultVDianApiUrl :: VDianApiConfig -> String
+defaultVDianApiUrl conf = vdianApiUrlBase conf <> "/api"
 
 
 mkApiPublicParam :: AccessToken -> Text -> ApiVersion -> ApiPublicParam
@@ -35,13 +24,14 @@ vdianSdkLogSource :: Text
 vdianSdkLogSource = "VDIAN-SDK"
 
 callMethod :: (FromJSON a, ApiCallMonad m)
-           => AccessToken
+           => VDianApiConfig
+           -> AccessToken
            -> Text
            -> ApiVersion
            -> ApiPrivateParam
            -> m (ApiCallResult a)
-callMethod atk method ver method_params = do
-  let url = defaultVDianApiUrl
+callMethod conf atk method ver method_params = do
+  let url = defaultVDianApiUrl conf
       pub_params = mkApiPublicParam atk method ver
       opts = defaults & param "public" .~ [ LT.toStrict (decodeUtf8 $ encode pub_params) ]
                       & param "param" .~ [ LT.toStrict ( decodeUtf8 $ encode $ Object method_params) ]
@@ -57,9 +47,13 @@ callMethod atk method ver method_params = do
 
 
 
-getAccessToken :: ApiCallMonad m => AppKey -> AppSecret -> m (ApiCallResult GetAccessTokenInfo)
-getAccessToken key secret = do
-  let url = vdianApiUrlBase <> "/token"
+getAccessToken :: ApiCallMonad m
+               => VDianApiConfig
+               -> AppKey
+               -> AppSecret
+               -> m (ApiCallResult GetAccessTokenInfo)
+getAccessToken conf key secret = do
+  let url = vdianApiUrlBase conf <> "/token"
       opts = defaults & param "grant_type" .~ [ asText "client_credential" ]
                       & param "appkey" .~ [ unAppKey key ]
                       & param "secret" .~ [ unAppSecret secret ]

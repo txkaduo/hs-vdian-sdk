@@ -142,12 +142,13 @@ instance ToJSON ListOrders where
     ]
 
 listOrders :: (ApiCallMonad m)
-           => AccessToken
+           => VDianApiConfig
+           -> AccessToken
            -> Int
            -> [ListOrderOpt]
            -> m (ApiCallResult ListOrders)
-listOrders atk page_num lo_opts = do
-  callMethod atk "vdian.order.list.get" ApiVersion1_1 params
+listOrders conf atk page_num lo_opts = do
+  callMethod conf atk "vdian.order.list.get" ApiVersion1_1 params
   where
     params = HM.insert "page_num" (toJSON page_num) $
               HM.fromList $ map mkListOrderOptParam lo_opts
@@ -185,8 +186,12 @@ instance FromJSON OrderDetails where
                  <*> (fmap nullIfEmptyString (o .: "send_time") >>= parseJSON)
 
 
-getOrderDetails :: ApiCallMonad m => AccessToken -> OrderId -> m (ApiCallResult OrderDetails)
-getOrderDetails atk order_id = do
-  callMethod atk "vdian.order.get" ApiVersion1_0 params
+getOrderDetails :: ApiCallMonad m
+                => VDianApiConfig
+                -> AccessToken
+                -> OrderId
+                -> m (ApiCallResult OrderDetails)
+getOrderDetails conf atk order_id = do
+  callMethod conf atk "vdian.order.get" ApiVersion1_0 params
   where
     params = HM.fromList [ "order_id" .= tshow (unOrderId order_id) ]

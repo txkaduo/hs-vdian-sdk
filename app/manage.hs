@@ -4,6 +4,7 @@ import           ClassyPrelude hiding ((<>))
 import           Control.Monad.Logger
 import qualified Data.Yaml             as Y
 import qualified Data.ByteString       as B
+import           Data.Default          (def)
 import           Options.Applicative
 
 import           System.Log.FastLogger (LoggerSet, newStderrLoggerSet,
@@ -22,6 +23,7 @@ data Options = Options {
                 , optAppSecret  :: AppSecret
                 , optEditor     :: Maybe Text
                 , optVerbose    :: Int
+                , optUrlBase    :: Maybe String
                 , optCommand    :: ManageCmd
                 }
 
@@ -48,28 +50,37 @@ optionsParse = Options
                         $ long "verbose" <> short 'v' <> value 1
                         <> metavar "LEVEL"
                         <> help "Verbose Level (0 - 3)")
+                <*> (optional $ strOption
+                        $ long "url-base" <> short 'b'
+                        <> metavar "URL_BASE"
+                        <> help "API URL Base")
                 <*> manageCmdParser
 
 start :: (ApiCallMonad m) => ReaderT Options m ()
 start = do
   opts <- ask
+  let api_conf = case optUrlBase opts of
+                  Nothing -> def
+                  Just url -> VDianApiConfig url
+
   let app_key = optAppKey opts
       app_secret = optAppSecret opts
       get_atk = do
-        getAccessToken app_key app_secret >>= extractResultData
+        getAccessToken api_conf app_key app_secret >>= extractResultData
 
   case optCommand opts of
       CmdListOrders -> do
         atk <- fmap getAtkToken $ get_atk
         $logInfo $ "AccessToken is: " <> unAccessToken atk
-        ListOrders total orders <- listOrders atk 1 [ListOrderPageSize 1]  >>= extractResultData
+        ListOrders total orders <- listOrders api_conf atk 1 [ListOrderPageSize 1]
+                                    >>= extractResultData
         putStrLn $ "Total order number: " <> tshow total
         liftIO $ B.putStr $ Y.encode orders
 
         forM_ orders $ \order -> do
           let order_id = simpleOrderOrderId order
 
-          _details <- getOrderDetails atk order_id >>= extractResultData
+          _details <- getOrderDetails api_conf atk order_id >>= extractResultData
           return ()
 
 
