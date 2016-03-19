@@ -1,6 +1,7 @@
 module VDian.Types where
 
 import           ClassyPrelude
+import           Control.DeepSeq       (NFData)
 import           Control.Monad.Logger
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Aeson
@@ -24,6 +25,9 @@ import           Text.Shakespeare.I18N (ToMessage (..))
 data VDianApiConfig = VDianApiConfig
   { vdianApiUrlBase :: String
   }
+  deriving (Show, Generic)
+
+instance NFData VDianApiConfig
 
 instance Default VDianApiConfig where
   def = VDianApiConfig "https://api.vdian.com"
@@ -49,10 +53,12 @@ instance ToJSON ApiVersion where
 
 newtype AccessToken = AccessToken { unAccessToken :: Text }
   deriving ( Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
+           , NFData
            , ToMessage, ToMarkup)
 
 newtype AppKey = AppKey { unAppKey :: Text }
   deriving (Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
+           , NFData
            , ToMessage, ToMarkup)
 
 newtype AppSecret = AppSecret { unAppSecret :: Text }
