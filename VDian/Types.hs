@@ -56,6 +56,7 @@ newtype AccessToken = AccessToken { unAccessToken :: Text }
 
 newtype AppKey = AppKey { unAppKey :: Text }
   deriving (Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
+           , Hashable
            , NFData
            , ToMessage, ToMarkup)
 
