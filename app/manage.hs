@@ -4,8 +4,8 @@ import           ClassyPrelude hiding ((<>))
 import           Control.Monad.Logger
 import qualified Data.Yaml             as Y
 import qualified Data.ByteString       as B
-import           Data.Default          (def)
 import           Options.Applicative
+import qualified Network.Wreq.Session  as WS
 
 import           System.Log.FastLogger (LoggerSet, newStderrLoggerSet,
                                         pushLogStr)
@@ -55,12 +55,12 @@ optionsParse = Options
                         <> help "API URL Base")
                 <*> manageCmdParser
 
-start :: (ApiCallMonad m) => ReaderT Options m ()
-start = do
-  opts <- ask
+start :: (ApiCallMonad m) => WS.Session -> Options -> m ()
+start sess opts = do
+  let api_conf0 = mkDefaultVDianApiConfig sess
   let api_conf = case optUrlBase opts of
-                  Nothing -> def
-                  Just url -> VDianApiConfig url
+                  Nothing -> api_conf0
+                  Just url -> api_conf0 { vdianApiUrlBase = url }
 
   let app_key = optAppKey opts
       app_secret = optAppSecret opts
@@ -100,10 +100,10 @@ appLogger logger_set verbose loc src level ls = do
           | otherwise = [ LevelError, LevelWarn, LevelInfo, LevelDebug ]
 
 start' :: Options -> IO ()
-start' opts = do
+start' opts = WS.withAPISession $ \sess -> do
   logger_set <- newStderrLoggerSet 0
   runLoggingT
-      (runReaderT start opts)
+      (start sess opts)
       (appLogger logger_set (optVerbose opts))
 
 main :: IO ()

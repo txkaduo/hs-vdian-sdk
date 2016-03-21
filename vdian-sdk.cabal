@@ -46,7 +46,6 @@ library
                      , lens
                      , monad-logger
                      , monad-control
-                     , data-default
                      , deepseq
 
   default-language:    Haskell2010
@@ -95,7 +94,7 @@ executable         vdian-manage
                    , bytestring
                    , yaml
                    , aeson
-                   , data-default
+                   , wreq
 
   default-extensions:  NoImplicitPrelude
                        CPP

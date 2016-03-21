@@ -6,13 +6,13 @@ import           Control.Monad.Logger
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Aeson
 import qualified Data.Aeson.Types      as A
-import           Data.Default          (Default(..))
 import qualified Data.Scientific       as SC
 import qualified Data.Text             as T
 import           Data.Time             ( NominalDiffTime, hoursToTimeZone
                                        , utcToLocalTime, localTimeToUTC )
 import           Data.Time.Format      (parseTimeM)
 import           Database.Persist.Sql  (PersistField (..), PersistFieldSql (..))
+import qualified Network.Wreq.Session  as WS
 import           Text.Blaze.Html       (ToMarkup (..))
 import           Text.Shakespeare.I18N (ToMessage (..))
 
@@ -24,14 +24,12 @@ import           Text.Shakespeare.I18N (ToMessage (..))
 
 data VDianApiConfig = VDianApiConfig
   { vdianApiUrlBase :: String
+  , vdianApiSession :: WS.Session
   }
   deriving (Show, Generic)
 
-instance NFData VDianApiConfig
-
-instance Default VDianApiConfig where
-  def = VDianApiConfig "https://api.vdian.com"
-
+mkDefaultVDianApiConfig :: WS.Session -> VDianApiConfig
+mkDefaultVDianApiConfig sess = VDianApiConfig "https://api.vdian.com" sess
 
 -- | 接口格式
 data ApiFormat = ApiFormatJson
