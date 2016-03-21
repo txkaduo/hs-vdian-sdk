@@ -62,6 +62,7 @@ newtype AppKey = AppKey { unAppKey :: Text }
 
 newtype AppSecret = AppSecret { unAppSecret :: Text }
   deriving ( Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
+           , NFData
            , ToMessage, ToMarkup)
 
 
