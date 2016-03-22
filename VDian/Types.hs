@@ -11,6 +11,7 @@ import qualified Data.Text             as T
 import           Data.Time             ( NominalDiffTime, hoursToTimeZone
                                        , utcToLocalTime, localTimeToUTC )
 import           Data.Time.Format      (parseTimeM)
+import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime, POSIXTime)
 import           Database.Persist.Sql  (PersistField (..), PersistFieldSql (..))
 import qualified Network.Wreq.Session  as WS
 import           Text.Blaze.Html       (ToMarkup (..))
@@ -53,6 +54,26 @@ newtype AccessToken = AccessToken { unAccessToken :: Text }
   deriving ( Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
            , NFData
            , ToMessage, ToMarkup)
+
+-- | Used in cache
+data AccessTokenInfo = AccessTokenInfo AccessToken UTCTime
+  deriving (Show, Generic)
+
+instance NFData AccessTokenInfo
+
+instance ToJSON AccessTokenInfo where
+  toJSON (AccessTokenInfo atk expiry) =
+    object
+    [ "access_token"  .= atk
+    , "expiry"        .= ( round $ utcTimeToPOSIXSeconds expiry :: Int64 )
+    ]
+
+
+instance FromJSON AccessTokenInfo where
+  parseJSON = withObject "AccessTokenInfo" $ \o -> do
+    AccessTokenInfo <$> o .: "access_token"
+                    <*> fmap (posixSecondsToUTCTime . (fromIntegral :: Int64 -> POSIXTime))
+                            (o .: "expiry")
 
 newtype AppKey = AppKey { unAppKey :: Text }
   deriving (Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql

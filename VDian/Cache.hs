@@ -9,12 +9,12 @@ import           VDian.Types
 
 
 class VDianCacheReader a where
-  vdianGetAccessToken :: a -> AppKey -> IO (Maybe (AccessToken, UTCTime))
+  vdianCacheGetAccessToken :: a -> AppKey -> IO (Maybe AccessTokenInfo)
 
 data SomeVDianCacheReader = forall a. VDianCacheReader a => SomeVDianCacheReader a
 
 
-class VDianCacheUpdater a where
-  vdianUpdateAccessToken :: a -> AppKey -> AccessToken -> UTCTime -> IO ()
+class VDianCacheRegister a where
+  vdianCacheRegisterApp :: a -> AppKey -> AppSecret -> IO ()
 
-data SomeVDianCacheUpdater = forall a. VDianCacheUpdater a => SomeVDianCacheUpdater a
+data SomeVDianCacheRegister = forall a. VDianCacheRegister a => SomeVDianCacheRegister a
