@@ -7,6 +7,7 @@ import           ClassyPrelude
 import           Data.Aeson
 import           Data.Aeson.Types    (Pair)
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Text           as T
 
 import           VDian.Method
 import           VDian.Types
@@ -195,3 +196,74 @@ getOrderDetails conf atk order_id = do
   callMethod conf atk "vdian.order.get" ApiVersion1_0 params
   where
     params = HM.fromList [ "order_id" .= tshow (unOrderId order_id) ]
+
+
+
+-- | 消息推送的类型
+data OrderEventMsgType = OrderEvtMsgTypeClosed
+                        | OrderEvtMsgTypeAwaitPayment
+                        | OrderEvtMsgTypePaid
+                        | OrderEvtMsgTypeShipped
+                        | OrderEvtMsgTypeConfirmReceipt
+                        | OrderEvtMsgTypeSellerSubmitRefund
+                        | OrderEvtMsgTypeBuyersComplaints
+                        | OrderEvtMsgTypeComplaintsProcessed
+                        | OrderEvtMsgTypeBuyerSubmitRefund
+                        | OrderEvtMsgTypeSellerRefuseRefund
+                        | OrderEvtMsgTypeRefundSuccess
+                        | OrderEvtMsgTypeFinished
+                        deriving (Show, Eq, Ord, Enum, Bounded)
+
+
+orderEventMsgTypeToStr :: OrderEventMsgType -> Text
+orderEventMsgTypeToStr OrderEvtMsgTypeClosed              = "weidian.order.close"
+orderEventMsgTypeToStr OrderEvtMsgTypeAwaitPayment        = "weidian.order.non_payment"
+orderEventMsgTypeToStr OrderEvtMsgTypePaid                = "weidian.order.already_payment"
+orderEventMsgTypeToStr OrderEvtMsgTypeShipped             = "weidian.order.delivered"
+orderEventMsgTypeToStr OrderEvtMsgTypeConfirmReceipt      = "weidian.order.confirm_eceipt"
+orderEventMsgTypeToStr OrderEvtMsgTypeSellerSubmitRefund  = "weidian.order.seller_submit_refund"
+orderEventMsgTypeToStr OrderEvtMsgTypeBuyersComplaints    = "weidian.order.buyers_complaints"
+orderEventMsgTypeToStr OrderEvtMsgTypeComplaintsProcessed = "weidian.order.complaints_have_been_processed"
+orderEventMsgTypeToStr OrderEvtMsgTypeBuyerSubmitRefund   = "weidian.order.buyers_apply_refund"
+orderEventMsgTypeToStr OrderEvtMsgTypeSellerRefuseRefund  = "weidian.order.sellers_refused_refund"
+orderEventMsgTypeToStr OrderEvtMsgTypeRefundSuccess       = "weidian.order.refund_success"
+orderEventMsgTypeToStr OrderEvtMsgTypeFinished            = "weidian.order.finished"
+
+
+orderEventMsgTypeFromStr :: Text -> Maybe OrderEventMsgType
+orderEventMsgTypeFromStr "weidian.order.close"                          = Just OrderEvtMsgTypeClosed
+orderEventMsgTypeFromStr "weidian.order.non_payment"                    = Just OrderEvtMsgTypeAwaitPayment
+orderEventMsgTypeFromStr "weidian.order.already_payment"                = Just OrderEvtMsgTypePaid
+orderEventMsgTypeFromStr "weidian.order.delivered"                      = Just OrderEvtMsgTypeShipped
+orderEventMsgTypeFromStr "weidian.order.confirm_eceipt"                 = Just OrderEvtMsgTypeConfirmReceipt
+orderEventMsgTypeFromStr "weidian.order.confirm_receipt"                = Just OrderEvtMsgTypeConfirmReceipt
+orderEventMsgTypeFromStr "weidian.order.seller_submit_refund"           = Just OrderEvtMsgTypeSellerSubmitRefund
+orderEventMsgTypeFromStr "weidian.order.buyers_complaints"              = Just OrderEvtMsgTypeBuyersComplaints
+orderEventMsgTypeFromStr "weidian.order.complaints_have_been_processed" = Just OrderEvtMsgTypeComplaintsProcessed
+orderEventMsgTypeFromStr "weidian.order.buyers_apply_refund"            = Just OrderEvtMsgTypeBuyerSubmitRefund
+orderEventMsgTypeFromStr "weidian.order.sellers_refused_refund"         = Just OrderEvtMsgTypeSellerRefuseRefund
+orderEventMsgTypeFromStr "weidian.order.refund_success"                 = Just OrderEvtMsgTypeRefundSuccess
+orderEventMsgTypeFromStr "weidian.order.finished"                       = Just OrderEvtMsgTypeFinished
+orderEventMsgTypeFromStr _                                              = Nothing
+
+
+instance ToJSON OrderEventMsgType where
+  toJSON = toJSON . orderEventMsgTypeToStr
+
+instance FromJSON OrderEventMsgType where
+  parseJSON = withText "OrderEventMsgType" $ \t -> do
+                maybe
+                  (fail $ T.unpack $ "unknown message type '" <> t <> "'")
+                  return
+                  (orderEventMsgTypeFromStr t)
+
+
+-- | 订单消息推送报文
+data PushedOrderMsg = PushedOrderMsg
+                        (Either Text OrderEventMsgType)
+                        OrderDetails
+
+instance FromJSON PushedOrderMsg where
+  parseJSON = withObject "PushedOrderMsg" $ \o -> do
+    PushedOrderMsg <$> (fmap Right (o .: "type") <|> fmap Left (o .: "type"))
+                   <*> o .: "message"
