@@ -246,7 +246,7 @@ INT_FROM_JSON_INST(OrderItemId)
 INT_TO_JSON_INST(OrderItemId)
 
 
-type Price = Float
+type Price = Double
 
 
 -- | SKU ID
