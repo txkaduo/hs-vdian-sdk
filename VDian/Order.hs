@@ -157,7 +157,8 @@ listOrders conf atk page_num lo_opts = do
 
 -- | 订单详情返回报文内容
 data OrderDetails = OrderDetails
-  { orderDetailsBuyerInfo   :: BuyerInfo
+  { orderDetailsId          :: OrderId
+  , orderDetailsBuyerInfo   :: BuyerInfo
   , orderDetailsItems       :: [OrderItem]
   , orderDetailsPrice       :: Price
   , orderDetailsTotalPrice  :: Price
@@ -173,7 +174,8 @@ data OrderDetails = OrderDetails
 
 instance FromJSON OrderDetails where
   parseJSON = withObject "OrderDetails" $ \o -> do
-    OrderDetails <$> o .: "buyer_info"
+    OrderDetails <$> fmap OrderId (o .: "order_id" >>= parseStrInt)
+                 <*> o .: "buyer_info"
                  <*> o .: "items"
                  <*> (o .: "price" >>= parsePrice)
                  <*> (o .: "total" >>= parsePrice)
