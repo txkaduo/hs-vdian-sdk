@@ -20,7 +20,7 @@ import           Text.Shakespeare.I18N (ToMessage (..))
 
 #define INT_FROM_JSON_INST(T) instance FromJSON T where { parseJSON = fmap T . parseStrInt }
 
-#define INT_TO_JSON_INST(T) instance ToJSON T where { toJSON (T x) = toJSON x }
+#define INT_TO_JSON_INST(T) instance ToJSON T where { toJSON (T x) = toJSON $ show x }
 
 
 data VDianApiConfig = VDianApiConfig
