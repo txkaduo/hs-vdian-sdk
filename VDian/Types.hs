@@ -239,11 +239,11 @@ instance ToJSON BuyerInfo where
 
 -- | 订单商品的ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
-newtype OrderItemId = OrderItemId { unOrderItemId :: Int64 }
+newtype ItemId = ItemId { unItemId :: Int64 }
   deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup)
 
-INT_FROM_JSON_INST(OrderItemId)
-INT_TO_JSON_INST(OrderItemId)
+INT_FROM_JSON_INST(ItemId)
+INT_TO_JSON_INST(ItemId)
 
 
 type Price = Double
@@ -260,7 +260,7 @@ INT_TO_JSON_INST(SkuId)
 
 -- | 订单详情里的商品信息
 data OrderItem = OrderItem
-  { orderItemItemId          :: OrderItemId
+  { orderItemItemId          :: ItemId
   , orderItemPrice           :: Price
   , orderItemQuantity        :: Int
   , orderItemTotalPrice      :: Price
