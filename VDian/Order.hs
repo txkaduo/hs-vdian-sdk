@@ -13,6 +13,21 @@ import           VDian.Method
 import           VDian.Types
 
 
+-- | 特别用在订单列表接口中的订单类型入参
+data ListOrderType = ListOrderUnpaid
+                   | ListOrderToShip
+                   | ListOrderRefunding
+                   | ListOrderClosed
+                   | ListOrderFinished
+                   deriving (Show, Eq, Ord, Enum, Bounded)
+
+instance ToJSON ListOrderType where
+  toJSON ListOrderUnpaid    = "unpay"
+  toJSON ListOrderToShip    = "pend"
+  toJSON ListOrderRefunding = "refund"
+  toJSON ListOrderClosed    = "close"
+  toJSON ListOrderFinished  = "finish"
+
 data ListOrderOpt = ListOrderAddStart UTCTime
                   | ListOrderAddEnd UTCTime
                   | ListOrderUpdateStart UTCTime
@@ -21,11 +36,11 @@ data ListOrderOpt = ListOrderAddStart UTCTime
                   deriving (Show, Eq, Ord)
 
 mkListOrderOptParam :: ListOrderOpt -> Pair
-mkListOrderOptParam (ListOrderAddStart t)    = "add_start" .= VDianTime t
-mkListOrderOptParam (ListOrderAddEnd t)      = "add_end" .= VDianTime t
+mkListOrderOptParam (ListOrderAddStart t)    = "add_start"    .= VDianTime t
+mkListOrderOptParam (ListOrderAddEnd t)      = "add_end"      .= VDianTime t
 mkListOrderOptParam (ListOrderUpdateStart t) = "update_start" .= VDianTime t
-mkListOrderOptParam (ListOrderUpdateEnd t)   = "update_end" .= VDianTime t
-mkListOrderOptParam (ListOrderPageSize t)    = "page_size" .= t
+mkListOrderOptParam (ListOrderUpdateEnd t)   = "update_end"   .= VDianTime t
+mkListOrderOptParam (ListOrderPageSize t)    = "page_size"    .= t
 
 
 -- | 订单状态在不同的接口(列表, 详情)下有不同的取值范围, 还有不同的表示方式
@@ -145,13 +160,15 @@ instance ToJSON ListOrders where
 listOrders :: (ApiCallMonad m)
            => VDianApiConfig
            -> AccessToken
+           -> ListOrderType
            -> Int
            -> [ListOrderOpt]
            -> m (ApiCallResult ListOrders)
-listOrders conf atk page_num lo_opts = do
+listOrders conf atk lot page_num lo_opts = do
   callMethod conf atk "vdian.order.list.get" ApiVersion1_1 params
   where
     params = HM.insert "page_num" (toJSON page_num) $
+              HM.insert "order_type" (toJSON lot) $
               HM.fromList $ map mkListOrderOptParam lo_opts
 
 
