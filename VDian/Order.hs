@@ -6,6 +6,8 @@ module VDian.Order
 import           ClassyPrelude
 import           Data.Aeson
 import           Data.Aeson.Types    (Pair)
+import           Data.Conduit
+import           Data.Conduit.Combinators (yieldMany)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text           as T
 
@@ -161,15 +163,34 @@ listOrders :: (ApiCallMonad m)
            => VDianApiConfig
            -> AccessToken
            -> ListOrderType
-           -> Int
            -> [ListOrderOpt]
+           -> Int
            -> m (ApiCallResult ListOrders)
-listOrders conf atk lot page_num lo_opts = do
+listOrders conf atk lot lo_opts page_num = do
   callMethod conf atk "vdian.order.list.get" ApiVersion1_1 params
   where
     params = HM.insert "page_num" (toJSON page_num) $
               HM.insert "order_type" (toJSON lot) $
               HM.fromList $ map mkListOrderOptParam lo_opts
+
+
+-- | Wrap 'listOrders' in a conduit interface
+sourceOrders :: (ApiCallMonad m)
+             => VDianApiConfig
+             -> AccessToken
+             -> ListOrderType
+             -> [ListOrderOpt]
+             -> Source m SimpleOrderInfo
+sourceOrders conf atk lot lo_opts = go 0 1
+  where
+    go done_cnt page_num = do
+        ListOrders total_num infos <- lift (listOrders conf atk lot lo_opts page_num)
+                                        >>= extractResultData
+        yieldMany infos
+        let done_cnt2 = done_cnt + length infos
+
+        when ( done_cnt2 < total_num ) $ do
+          go done_cnt2 (page_num + 1)
 
 
 -- | 订单详情返回报文内容

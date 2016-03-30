@@ -71,7 +71,7 @@ start sess opts = do
       CmdListOrders -> do
         atk <- fmap getAtkToken $ get_atk
         $logInfo $ "AccessToken is: " <> unAccessToken atk
-        ListOrders total orders <- listOrders api_conf atk ListOrderUnpaid 1 [ListOrderPageSize 1]
+        ListOrders total orders <- listOrders api_conf atk ListOrderUnpaid [ListOrderPageSize 1] 1
                                     >>= extractResultData
         putStrLn $ "Total order number: " <> tshow total
         liftIO $ B.putStr $ Y.encode orders

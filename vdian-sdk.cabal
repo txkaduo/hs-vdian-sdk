@@ -47,6 +47,8 @@ library
                      , monad-logger
                      , monad-control
                      , deepseq
+                     , conduit
+                     , conduit-combinators
 
   default-language:    Haskell2010
 
