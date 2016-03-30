@@ -5,11 +5,13 @@ module VDian.Order
 
 import           ClassyPrelude
 import           Data.Aeson
-import           Data.Aeson.Types    (Pair)
+import           Data.Aeson.Types         (Pair)
+import qualified Data.ByteString.Lazy     as LB
 import           Data.Conduit
 import           Data.Conduit.Combinators (yieldMany)
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Text           as T
+import qualified Data.HashMap.Strict      as HM
+import qualified Data.Text                as T
+import           Network.Wreq             (Response)
 
 import           VDian.Method
 import           VDian.Types
@@ -233,7 +235,16 @@ getOrderDetails :: ApiCallMonad m
                 -> OrderId
                 -> m (ApiCallResult OrderDetails)
 getOrderDetails conf atk order_id = do
-  callMethod conf atk "vdian.order.get" ApiVersion1_0 params
+  fst <$> getOrderDetails' conf atk order_id
+
+
+getOrderDetails' :: ApiCallMonad m
+                 => VDianApiConfig
+                 -> AccessToken
+                 -> OrderId
+                 -> m (ApiCallResult OrderDetails, Response LB.ByteString)
+getOrderDetails' conf atk order_id = do
+  callMethod' conf atk "vdian.order.get" ApiVersion1_0 params
   where
     params = HM.fromList [ "order_id" .= tshow (unOrderId order_id) ]
 

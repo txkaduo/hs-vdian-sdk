@@ -4,10 +4,11 @@ module VDian.Method
   ) where
 
 import           ClassyPrelude
-import           Control.Lens  hiding ((.=))
+import           Control.Lens          hiding ((.=))
 import           Control.Monad.Logger
-import qualified Data.Text.Lazy as LT
 import           Data.Aeson
+import qualified Data.ByteString.Lazy  as LB
+import qualified Data.Text.Lazy        as LT
 import           Network.Wreq
 
 import           VDian.Types
@@ -23,21 +24,21 @@ mkApiPublicParam atk method ver = ApiPublicParam method atk ApiFormatJson ver
 vdianSdkLogSource :: Text
 vdianSdkLogSource = "VDIAN-SDK"
 
-callMethod :: (FromJSON a, ApiCallMonad m)
-           => VDianApiConfig
-           -> AccessToken
-           -> Text
-           -> ApiVersion
-           -> ApiPrivateParam
-           -> m (ApiCallResult a)
-callMethod conf atk method ver method_params = do
+callMethod' :: (FromJSON a, ApiCallMonad m)
+            => VDianApiConfig
+            -> AccessToken
+            -> Text
+            -> ApiVersion
+            -> ApiPrivateParam
+            -> m (ApiCallResult a, Response LB.ByteString)
+callMethod' conf atk method ver method_params = do
   let url = defaultVDianApiUrl conf
       pub_params = mkApiPublicParam atk method ver
       opts = defaults & param "public" .~ [ LT.toStrict (decodeUtf8 $ encode pub_params) ]
                       & param "param" .~ [ LT.toStrict ( decodeUtf8 $ encode $ Object method_params) ]
 
   r <- liftIO (postWith opts url (asByteString ""))
-  fmap (view responseBody) (asJSON $ alterContentTypeToJson r)
+  fmap ((,r) . view responseBody) (asJSON $ alterContentTypeToJson r)
     `catch`
     \err@(JSONError errmsg) -> do
       $logErrorS vdianSdkLogSource $
@@ -45,6 +46,15 @@ callMethod conf atk method ver method_params = do
         <> fromString errmsg
       throwM err
 
+callMethod :: (FromJSON a, ApiCallMonad m)
+           => VDianApiConfig
+           -> AccessToken
+           -> Text
+           -> ApiVersion
+           -> ApiPrivateParam
+           -> m (ApiCallResult a)
+callMethod conf atk method ver method_params =
+  fmap fst $ callMethod' conf atk method ver method_params
 
 
 getAccessToken :: ApiCallMonad m
