@@ -1,5 +1,5 @@
 name:                vdian-sdk
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            微店接口 SDK
 description:         包装微店的接口, 及各种工具
 license:             BSD3
