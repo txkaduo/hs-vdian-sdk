@@ -49,6 +49,8 @@ library
                      , deepseq
                      , conduit
                      , conduit-combinators
+                     , binary
+                     , binary-orphans
 
   default-language:    Haskell2010
 

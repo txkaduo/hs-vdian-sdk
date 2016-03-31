@@ -6,6 +6,8 @@ import           Control.Monad.Logger
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Data.Aeson
 import qualified Data.Aeson.Types      as A
+import           Data.Binary           (Binary)
+import           Data.Binary.Orphans   ()
 import qualified Data.Scientific       as SC
 import qualified Data.Text             as T
 import           Data.Time             ( NominalDiffTime, hoursToTimeZone
@@ -53,11 +55,15 @@ instance ToJSON ApiVersion where
 newtype AccessToken = AccessToken { unAccessToken :: Text }
   deriving ( Show, Eq, Ord, FromJSON, ToJSON, PersistField, PersistFieldSql
            , NFData
-           , ToMessage, ToMarkup)
+           , ToMessage, ToMarkup
+           , Binary, Typeable
+           )
 
 -- | Used in cache
 data AccessTokenInfo = AccessTokenInfo AccessToken UTCTime
-  deriving (Show, Generic)
+  deriving (Show, Generic, Typeable)
+
+instance Binary AccessTokenInfo
 
 instance NFData AccessTokenInfo
 
@@ -175,7 +181,9 @@ data OrderType = OrderUnpaid
                 | OrderRefund
                 | OrderClose
                 | OrderFinish
-                deriving (Show, Eq, Ord, Enum, Bounded)
+                deriving (Show, Eq, Ord, Enum, Bounded, Generic, Typeable)
+
+instance Binary OrderType
 
 instance ToJSON OrderType where
   toJSON OrderUnpaid  = toJSON $ asText "unpay"
@@ -187,7 +195,7 @@ instance ToJSON OrderType where
 
 -- | 时间参数的格式
 newtype VDianTime = VDianTime { unVDianTime :: UTCTime }
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Binary, Typeable)
 
 instance ToJSON VDianTime where
   toJSON (VDianTime t) = toJSON $ formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" lt
@@ -206,7 +214,9 @@ instance FromJSON VDianTime where
 -- | 订单号
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype OrderId = OrderId { unOrderId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup)
+  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , Binary, Typeable
+           )
 
 INT_FROM_JSON_INST(OrderId)
 INT_TO_JSON_INST(OrderId)
@@ -215,7 +225,9 @@ INT_TO_JSON_INST(OrderId)
 -- | 微店的用户ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype VDianUserId = VDianUserId { unVDianUserId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup)
+  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , Binary, Typeable
+           )
 
 INT_FROM_JSON_INST(VDianUserId)
 INT_TO_JSON_INST(VDianUserId)
@@ -252,7 +264,9 @@ instance ToJSON BuyerInfo where
 -- | 订单商品的ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype ItemId = ItemId { unItemId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup)
+  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , Binary, Typeable
+           )
 
 INT_FROM_JSON_INST(ItemId)
 INT_TO_JSON_INST(ItemId)
@@ -264,7 +278,9 @@ type Price = Double
 -- | SKU ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype SkuId = SkuId { unSkuId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup)
+  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , Binary, Typeable
+           )
 
 INT_FROM_JSON_INST(SkuId)
 INT_TO_JSON_INST(SkuId)
@@ -284,7 +300,9 @@ data OrderItem = OrderItem
   , orderItemSkuId           :: SkuId
   , orderItemSkuTitle        :: Text
   } 
-  deriving (Show)
+  deriving (Show, Generic, Typeable)
+
+instance Binary OrderItem
 
 instance FromJSON OrderItem where
   parseJSON = withObject "OrderItem" $ \o -> do
