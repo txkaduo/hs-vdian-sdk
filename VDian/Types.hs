@@ -99,6 +99,12 @@ instance FromJSON ApiCallStatus where
     ApiCallStatus <$> o .: "status_code"
                   <*> o .: "status_reason"
 
+instance ToJSON ApiCallStatus where
+  toJSON x = object [ "status_code" .= apiCallStatusCode x
+                    , "status_reason" .= apiCallStatusReason x
+                    ]
+
+
 data ApiCallResult a = ApiCallResult
                         { apiCallResultStatus :: ApiCallStatus
                         , apiCallResultData   :: Maybe a
@@ -108,6 +114,12 @@ instance FromJSON a => FromJSON (ApiCallResult a) where
   parseJSON = withObject "ApiCallResult" $ \o -> do
     ApiCallResult <$> o .: "status"
                   <*> o .:? "result"
+
+instance ToJSON a => ToJSON (ApiCallResult a) where
+  toJSON x = object
+              [ "status" .= apiCallResultStatus x
+              , "result" .= apiCallResultData x
+              ]
 
 
 -- | 所有接口调用中都有的公有参数
