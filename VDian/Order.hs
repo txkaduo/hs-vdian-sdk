@@ -200,8 +200,18 @@ data OrderDetails = OrderDetails
   { orderDetailsId          :: OrderId
   , orderDetailsBuyerInfo   :: BuyerInfo
   , orderDetailsItems       :: [OrderItem]
+
   , orderDetailsPrice       :: Price
+  -- ^ 商品总价, 不含运费
   , orderDetailsTotalPrice  :: Price
+  -- ^ 订单总价, 包含运费
+  , orderDetailsShipFee     :: Price
+  -- ^ 快递费用
+  , orderDetailsPromoteFee  :: Price
+  -- ^ 推广分成佣金
+  -- 对应 JSON 里的 total_fee 字段
+  -- 不知 total 为何意
+
   , orderDetailsStatus      :: OrderStatus
   , orderDetailsStatusText  :: Text
   , orderDetailsStatusDesc  :: Text
@@ -219,6 +229,8 @@ instance FromJSON OrderDetails where
                  <*> o .: "items"
                  <*> (o .: "price" >>= parsePrice)
                  <*> (o .: "total" >>= parsePrice)
+                 <*> (o .: "express_fee" >>= parsePrice)
+                 <*> (o .: "total_fee" >>= parsePrice)
                  <*> (o .: "status" >>= maybe mzero return . fromOrderStatusStr)
                  <*> o .: "status2"
                  <*> o .: "status_desc"
