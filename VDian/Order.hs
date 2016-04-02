@@ -58,7 +58,7 @@ data OrderStatus = OrderStatusJustCreated
                     -- ^ 列表接口返回的状态 7, 但不清楚与详情接口的状态有什么对应关系
                   | OrderStatusRefundUnship
                   | OrderStatusRefundAfterShip
-                  | OrderStatusRefundAfterAccecpt
+                  | OrderStatusRefundAfterAccept
                   | OrderStatusAccept
                   | OrderStatusFinish
                   | OrderStatusClose
