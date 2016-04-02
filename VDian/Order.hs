@@ -89,7 +89,7 @@ toOrderStatusNum _                      = Nothing
 fromOrderStatusStr :: Text -> Maybe OrderStatus
 fromOrderStatusStr "unpay"            = Just OrderStatusUnPaid
 fromOrderStatusStr "pay"              = Just OrderStatusPaid
-fromOrderStatusStr "unship_refunding" = Just OrderStatusPaid
+fromOrderStatusStr "unship_refunding" = Just OrderStatusRefundUnship
 fromOrderStatusStr "ship"             = Just OrderStatusShipped
 fromOrderStatusStr "shiped_refunding" = Just OrderStatusRefundAfterShip
 fromOrderStatusStr "accept"           = Just OrderStatusAccept
