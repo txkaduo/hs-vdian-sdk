@@ -4,6 +4,7 @@ module VDian.Order
   ) where
 
 import           ClassyPrelude
+import           Database.Persist.Sql    (PersistField(..), PersistFieldSql(..), SqlType(SqlString))
 import           Data.Aeson
 import           Data.Aeson.Types         (Pair)
 import qualified Data.ByteString.Lazy     as LB
@@ -96,6 +97,37 @@ fromOrderStatusStr "accept"           = Just OrderStatusAccept
 fromOrderStatusStr "finish"           = Just OrderStatusFinish
 fromOrderStatusStr "close"            = Just OrderStatusClose
 fromOrderStatusStr _                  = Nothing
+
+
+toOrderStatusStr :: IsString s => OrderStatus -> Maybe s
+toOrderStatusStr OrderStatusUnPaid          = Just "unpay"
+toOrderStatusStr OrderStatusPaid            = Just "pay"
+toOrderStatusStr OrderStatusRefundUnship    = Just "unship_refunding"
+toOrderStatusStr OrderStatusShipped         = Just "ship"
+toOrderStatusStr OrderStatusRefundAfterShip = Just "shiped_refunding"
+toOrderStatusStr OrderStatusAccept          = Just "accept"
+toOrderStatusStr OrderStatusFinish          = Just "finish"
+toOrderStatusStr OrderStatusClose           = Just "close"
+toOrderStatusStr _                          = Nothing
+
+
+-- | 因为 OrderStatus 有时候表示为数字, 有时候表示为字串
+-- 而且范围还不一样
+-- 在我们数据库里保存时, 让能保存全部值,对应的 SQL 类型就只能是字串
+instance PersistFieldSql OrderStatus where
+  sqlType _ = SqlString
+
+instance PersistField OrderStatus where
+  toPersistValue x = toPersistValue $ fromMaybe (error $ "cannot represent: " <> show x) $
+                      fmap tshow (toOrderStatusNum x) <|> toOrderStatusStr x
+
+  fromPersistValue v = do
+    t <- fromPersistValue v
+    let m_n = readMay t >>= fromOrderStatusNum
+    case m_n of
+      Just x -> return x
+      Nothing -> maybe (Left $ "cannot parse VD.OrderStatus: " <> t) return $
+                    fromOrderStatusStr t
 
 
 -- | 订单列表返回的订单信息
