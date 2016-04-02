@@ -129,6 +129,18 @@ instance PersistField OrderStatus where
       Nothing -> maybe (Left $ "cannot parse VD.OrderStatus: " <> t) return $
                     fromOrderStatusStr t
 
+instance ToJSON OrderStatus where
+  toJSON x = toJSON $ fromMaybe (error $ "cannot represent: " <> show x) $
+                      fmap tshow (toOrderStatusNum x) <|> toOrderStatusStr x
+
+instance FromJSON OrderStatus where
+  parseJSON = withText "OrderStatus" $ \t -> do
+    let m_n = readMay t >>= fromOrderStatusNum
+    case m_n of
+      Just x -> return x
+      Nothing -> maybe (fail $ "cannot parse VD.OrderStatus: " <> T.unpack t) return $
+                    fromOrderStatusStr t
+
 
 -- | 订单列表返回的订单信息
 data SimpleOrderInfo = SimpleOrderInfo
