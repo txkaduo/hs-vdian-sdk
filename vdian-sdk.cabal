@@ -51,6 +51,8 @@ library
                      , conduit-combinators
                      , binary
                      , binary-orphans
+                     , yesod-core
+                     , http-api-data
 
   default-language:    Haskell2010
 

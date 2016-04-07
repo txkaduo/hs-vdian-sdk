@@ -18,6 +18,8 @@ import           Database.Persist.Sql  (PersistField (..), PersistFieldSql (..))
 import qualified Network.Wreq.Session  as WS
 import           Text.Blaze.Html       (ToMarkup (..))
 import           Text.Shakespeare.I18N (ToMessage (..))
+import           Web.HttpApiData       (ToHttpApiData, FromHttpApiData)
+import           Yesod.Core            (PathPiece(..))
 
 
 #define INT_FROM_JSON_INST(T) instance FromJSON T where { parseJSON = fmap T . parseStrInt }
@@ -214,7 +216,8 @@ instance FromJSON VDianTime where
 -- | 订单号
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype OrderId = OrderId { unOrderId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+  deriving ( Show, Read, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , PathPiece, ToHttpApiData, FromHttpApiData
            , Binary, Typeable
            )
 
@@ -264,7 +267,8 @@ instance ToJSON BuyerInfo where
 -- | 订单商品的ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype ItemId = ItemId { unItemId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+  deriving ( Show, Read, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , PathPiece, ToHttpApiData, FromHttpApiData
            , Binary, Typeable
            )
 
@@ -278,7 +282,8 @@ type Price = Double
 -- | SKU ID
 -- 文档说是字串, 接口返回时也是字串格式, 但实际上看上去总是个数字
 newtype SkuId = SkuId { unSkuId :: Int64 }
-  deriving ( Show, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+  deriving ( Show, Read, Eq, Ord, PersistField, PersistFieldSql, ToMarkup
+           , PathPiece, ToHttpApiData, FromHttpApiData
            , Binary, Typeable
            )
 
