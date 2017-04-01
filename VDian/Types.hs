@@ -162,7 +162,7 @@ data GetAccessTokenInfo = GetAccessTokenInfo
 instance FromJSON GetAccessTokenInfo where
   parseJSON = withObject "GetAccessTokenInfo" $ \o -> do
     GetAccessTokenInfo <$> o .: "access_token"
-                       <*> fmap ( fromIntegral :: Int64 -> _) (o .: "expire_in")
+                       <*> fmap (fromIntegral :: Num _t => Int64 -> _t) (o .: "expire_in")
 
 
 data ApiCallException = ApiCallException StatusCode Text
@@ -341,7 +341,7 @@ parseStrInt (String t) =
 
 parseStrInt (Number sc) =
   either (const $ fail $ "expecting integer but get floating: " <> show sc) return $
-    (SC.floatingOrInteger sc :: Either Double _)
+    (SC.floatingOrInteger sc :: Integral _t => Either Double _t)
 
 parseStrInt x = A.typeMismatch "Integer" x
 
