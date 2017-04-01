@@ -151,7 +151,7 @@ instance ToJSON ApiPublicParam where
 type ApiPrivateParam = HashMap Text Value
 
 
-type ApiCallMonad m = (MonadIO m, MonadThrow m, MonadBaseControl IO m, MonadLogger m)
+type ApiCallMonad m = (MonadIO m, MonadThrow m, MonadCatch m, MonadBaseControl IO m, MonadLogger m)
 
 
 data GetAccessTokenInfo = GetAccessTokenInfo
